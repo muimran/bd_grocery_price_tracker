@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Scrape Meena Bazar category pages via backend API and export CSV + JSON."""
+"""Scrape Meena Bazar category pages via backend API and export CSV."""
 
 from __future__ import annotations
 
@@ -424,17 +424,14 @@ def dedupe_rows(rows: list[ProductRow]) -> list[ProductRow]:
     return deduped
 
 
-def write_outputs(rows: list[ProductRow], out_dir: str) -> tuple[Path, Path]:
+def write_outputs(rows: list[ProductRow], out_dir: str) -> Path:
     output_dir = Path(out_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    json_path = output_dir / f"meena_products_{stamp}.json"
     csv_path = output_dir / f"meena_products_{stamp}.csv"
 
     payload = [asdict(row) for row in rows]
-    with json_path.open("w", encoding="utf-8") as jf:
-        json.dump(payload, jf, ensure_ascii=False, indent=2)
 
     fieldnames = list(ProductRow.__dataclass_fields__.keys())
     with csv_path.open("w", encoding="utf-8", newline="") as cf:
@@ -443,14 +440,14 @@ def write_outputs(rows: list[ProductRow], out_dir: str) -> tuple[Path, Path]:
         for row in payload:
             writer.writerow(row)
 
-    return csv_path, json_path
+    return csv_path
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Scrape Meena Bazar category pages")
     parser.add_argument("--url", help="Single category URL to scrape")
     parser.add_argument("--urls-file", help="Path to a .txt file with one URL per line")
-    parser.add_argument("--out-dir", default=DEFAULT_OUT_DIR, help="Output directory for CSV and JSON")
+    parser.add_argument("--out-dir", default=DEFAULT_OUT_DIR, help="Output directory for CSV")
     parser.add_argument("--area-id", default=DEFAULT_AREA_ID, help="Meena area id (default: 802)")
     parser.add_argument("--subunit-id", default=DEFAULT_SUBUNIT_ID, help="Meena subunit id (default: 1075)")
     parser.add_argument("--page-size", type=int, default=DEFAULT_PAGE_SIZE, help="API batch size per request")
@@ -521,7 +518,7 @@ def main() -> int:
         print("ERROR: No products scraped. Exiting non-zero for automation alert.", file=sys.stderr)
         return 1
 
-    csv_path, json_path = write_outputs(rows, args.out_dir)
+    csv_path = write_outputs(rows, args.out_dir)
     duration = time.time() - started
 
     print(f"Scraped {len(rows)} products from {len(target_urls)} URL(s).")
@@ -530,7 +527,6 @@ def main() -> int:
         for url in failed_urls:
             print(f"  - {url}")
     print(f"CSV:  {csv_path}")
-    print(f"JSON: {json_path}")
     print(f"Duration: {duration:.1f}s")
     return 0
 

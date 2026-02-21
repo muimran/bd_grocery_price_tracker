@@ -24,7 +24,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: chaldal-outputs
-          path: outputs/chaldal_products_*.*
+          path: outputs/chaldal_products_*.csv
           if-no-files-found: error
 
   scrape-shwapno:
@@ -45,7 +45,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: shwapno-outputs
-          path: outputs/shwapno_products_*.*
+          path: outputs/shwapno_products_*.csv
           if-no-files-found: error
 
   scrape-meena:
@@ -65,5 +65,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: meena-outputs
-          path: outputs/meena_products_*.*
+          path: outputs/meena_products_*.csv
           if-no-files-found: error
