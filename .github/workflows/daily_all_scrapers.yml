@@ -20,6 +20,58 @@ jobs:
           python -m playwright install chromium
       - name: Run Chaldal scraper
         run: python scrape_chaldal.py --urls-file urls_chaldal.txt --headless true
+      - name: Prepare Chaldal CSV for BigQuery
+        run: |
+          python - <<'PY'
+          import csv, glob
+          from datetime import datetime, timezone
+
+          src = sorted(glob.glob('outputs/chaldal_products_*.csv'))[-1]
+          dst = 'outputs/chaldal_bq_load.csv'
+          ingest_ts = datetime.now(timezone.utc).isoformat()
+
+          with open(src, encoding='utf-8') as f_in, open(dst, 'w', encoding='utf-8', newline='') as f_out:
+              r = csv.DictReader(f_in)
+              fields = [
+                  'source_site','product_name','regular_price','discounted_price','currency',
+                  'amount_raw','quantity','unit','title_context_quantity','title_context_unit',
+                  'title_context_note','in_stock','source_url','scraped_at_utc','ingested_at_utc'
+              ]
+              w = csv.DictWriter(f_out, fieldnames=fields)
+              w.writeheader()
+              for row in r:
+                  w.writerow({
+                      'source_site': 'chaldal',
+                      'product_name': row.get('product_name'),
+                      'regular_price': row.get('regular_price'),
+                      'discounted_price': row.get('discounted_price'),
+                      'currency': row.get('currency'),
+                      'amount_raw': row.get('amount_raw'),
+                      'quantity': row.get('quantity'),
+                      'unit': row.get('unit'),
+                      'title_context_quantity': row.get('title_context_quantity'),
+                      'title_context_unit': row.get('title_context_unit'),
+                      'title_context_note': row.get('title_context_note'),
+                      'in_stock': row.get('in_stock'),
+                      'source_url': row.get('source_url'),
+                      'scraped_at_utc': row.get('scraped_at_utc'),
+                      'ingested_at_utc': ingest_ts,
+                  })
+          PY
+      - name: Auth to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+      - name: Append Chaldal rows to BigQuery
+        run: |
+          bq --project_id="${{ secrets.GCP_PROJECT_ID }}" load \
+            --source_format=CSV \
+            --skip_leading_rows=1 \
+            --replace=false \
+            "${{ secrets.BQ_DATASET }}.${{ secrets.BQ_TABLE }}" \
+            outputs/chaldal_bq_load.csv
       - name: Upload Chaldal outputs
         uses: actions/upload-artifact@v4
         with:
@@ -41,6 +93,58 @@ jobs:
           python -m playwright install chromium
       - name: Run Shwapno scraper
         run: python scrape_shwapno.py --urls-file urls_shwapno.txt --headless true
+      - name: Prepare Shwapno CSV for BigQuery
+        run: |
+          python - <<'PY'
+          import csv, glob
+          from datetime import datetime, timezone
+
+          src = sorted(glob.glob('outputs/shwapno_products_*.csv'))[-1]
+          dst = 'outputs/shwapno_bq_load.csv'
+          ingest_ts = datetime.now(timezone.utc).isoformat()
+
+          with open(src, encoding='utf-8') as f_in, open(dst, 'w', encoding='utf-8', newline='') as f_out:
+              r = csv.DictReader(f_in)
+              fields = [
+                  'source_site','product_name','regular_price','discounted_price','currency',
+                  'amount_raw','quantity','unit','title_context_quantity','title_context_unit',
+                  'title_context_note','in_stock','source_url','scraped_at_utc','ingested_at_utc'
+              ]
+              w = csv.DictWriter(f_out, fieldnames=fields)
+              w.writeheader()
+              for row in r:
+                  w.writerow({
+                      'source_site': 'shwapno',
+                      'product_name': row.get('product_name'),
+                      'regular_price': row.get('regular_price'),
+                      'discounted_price': row.get('discounted_price'),
+                      'currency': row.get('currency'),
+                      'amount_raw': row.get('amount_raw'),
+                      'quantity': row.get('quantity'),
+                      'unit': row.get('unit'),
+                      'title_context_quantity': row.get('title_context_quantity'),
+                      'title_context_unit': row.get('title_context_unit'),
+                      'title_context_note': row.get('title_context_note'),
+                      'in_stock': row.get('in_stock'),
+                      'source_url': row.get('source_url'),
+                      'scraped_at_utc': row.get('scraped_at_utc'),
+                      'ingested_at_utc': ingest_ts,
+                  })
+          PY
+      - name: Auth to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+      - name: Append Shwapno rows to BigQuery
+        run: |
+          bq --project_id="${{ secrets.GCP_PROJECT_ID }}" load \
+            --source_format=CSV \
+            --skip_leading_rows=1 \
+            --replace=false \
+            "${{ secrets.BQ_DATASET }}.${{ secrets.BQ_TABLE }}" \
+            outputs/shwapno_bq_load.csv
       - name: Upload Shwapno outputs
         uses: actions/upload-artifact@v4
         with:
@@ -61,6 +165,58 @@ jobs:
           pip install -r requirements.txt
       - name: Run Meena scraper
         run: python scrape_meena.py --urls-file urls_meena.txt --headless true
+      - name: Prepare Meena CSV for BigQuery
+        run: |
+          python - <<'PY'
+          import csv, glob
+          from datetime import datetime, timezone
+
+          src = sorted(glob.glob('outputs/meena_products_*.csv'))[-1]
+          dst = 'outputs/meena_bq_load.csv'
+          ingest_ts = datetime.now(timezone.utc).isoformat()
+
+          with open(src, encoding='utf-8') as f_in, open(dst, 'w', encoding='utf-8', newline='') as f_out:
+              r = csv.DictReader(f_in)
+              fields = [
+                  'source_site','product_name','regular_price','discounted_price','currency',
+                  'amount_raw','quantity','unit','title_context_quantity','title_context_unit',
+                  'title_context_note','in_stock','source_url','scraped_at_utc','ingested_at_utc'
+              ]
+              w = csv.DictWriter(f_out, fieldnames=fields)
+              w.writeheader()
+              for row in r:
+                  w.writerow({
+                      'source_site': 'meena',
+                      'product_name': row.get('product_name'),
+                      'regular_price': row.get('regular_price'),
+                      'discounted_price': row.get('discounted_price'),
+                      'currency': row.get('currency'),
+                      'amount_raw': row.get('amount_raw'),
+                      'quantity': row.get('quantity'),
+                      'unit': row.get('unit'),
+                      'title_context_quantity': row.get('title_context_quantity'),
+                      'title_context_unit': row.get('title_context_unit'),
+                      'title_context_note': row.get('title_context_note'),
+                      'in_stock': row.get('in_stock'),
+                      'source_url': row.get('source_url'),
+                      'scraped_at_utc': row.get('scraped_at_utc'),
+                      'ingested_at_utc': ingest_ts,
+                  })
+          PY
+      - name: Auth to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+      - name: Append Meena rows to BigQuery
+        run: |
+          bq --project_id="${{ secrets.GCP_PROJECT_ID }}" load \
+            --source_format=CSV \
+            --skip_leading_rows=1 \
+            --replace=false \
+            "${{ secrets.BQ_DATASET }}.${{ secrets.BQ_TABLE }}" \
+            outputs/meena_bq_load.csv
       - name: Upload Meena outputs
         uses: actions/upload-artifact@v4
         with:
